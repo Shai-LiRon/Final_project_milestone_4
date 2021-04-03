@@ -21,6 +21,7 @@
 library(shiny)
 library(tidyverse)
 library(tidycensus)
+library(rstanarm)
 
 # Define UI for application that draws a histogram
 ui <- navbarPage(
@@ -43,11 +44,11 @@ ui <- navbarPage(
               an explanation of why you made them")),
     tabPanel("About", 
              titlePanel("About"),
-             h3("Project Background and Motivations"),
-             p("Hello, this is where I talk about my project."),
-             h3("About Me"),
-             p("My name is ______ and I study ______. 
-             You can reach me at ______@college.harvard.edu.")))
+             h3("In this project I sought to uncover the connection between socio-economic status and vaccination rate. I am using Israel as a case study, as it is the country with the largest number of vaccinated per population and there is a lot of importance in studying this considering other countries will face similar issues with vaccination and methods to incentivise lower income households and minorities to obtain a vaccine is relevant and important in combating the pandemic."),
+             p("My project has been an interesting challange. I have so far shown two plots, one which shows the cumillative in crease in vaccine rates for different areas, the second is a posterior for the likelyhood that any 50 year old is vaccinated or not yet."),
+             h3("Planning more regressions when I start to work with the population and economic data."),
+             p("My name is Shai-Li and I study at Harvard College. 
+             You can reach me at shailiron@college.harvard.edu.")))
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
@@ -74,7 +75,7 @@ server <- function(input, output) {
         }                                        
         else if(input$plot_type == "b"){
             list(
-                src = "total_ages.png",
+                src = "posterior_plot.png",
                 width = 500,
                 height = 500,
                 alt = "New York County Map")

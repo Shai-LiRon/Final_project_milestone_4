@@ -11,6 +11,7 @@ library(tidyverse)
 library(dplyr)
 library(janitor)
 library(primer.data)
+library(rstanarm)
 
 
 ```
@@ -24,6 +25,7 @@ covid_vac <- read_csv(file = "raw_data/vaccinated_city_table_ver_0022.csv", col_
 )) 
 
 ```
+
 
 
 ```{r}
@@ -44,19 +46,28 @@ clean_names
 ```{r}
 clean_15 <- covid_vac %>% 
   clean_names() %>% 
-  mutate(first_dose_0_19 = ifelse(first_dose_0_19 =="<15", 15, first_dose_0_19)) %>% 
-  mutate(first_dose_20_29 = ifelse(first_dose_20_29 =="<15", 15, first_dose_20_29)) %>% 
-  mutate(first_dose_30_39 = ifelse(first_dose_30_39 =="<15", 15, first_dose_30_39)) %>% 
-  mutate(first_dose_40_49 = ifelse(first_dose_40_49 =="<15", 15, first_dose_40_49)) %>% 
-   mutate(first_dose_50_59 = ifelse(first_dose_50_59 =="<15", 15, first_dose_50_59)) %>% 
- mutate( first_dose_60_69 = ifelse(first_dose_60_69 =="<15", 15,  first_dose_60_69)) %>% 
-  mutate(first_dose_70_79 = ifelse(first_dose_70_79 =="<15", 15, first_dose_70_79)) %>% 
-  mutate(first_dose_80_89 = ifelse(first_dose_80_89 =="<15", 15, first_dose_80_89)) %>% 
-  mutate(first_dose_90 = ifelse(first_dose_90 =="<15", 15, first_dose_90))
-   # select(date, starts_with("first_dose")) %>% 
+  mutate(first_dose_0_19 = ifelse(first_dose_0_19 =="<15", 0, first_dose_0_19)) %>% 
+  mutate(first_dose_20_29 = ifelse(first_dose_20_29 =="<15", 0, first_dose_20_29)) %>% 
+  mutate(first_dose_30_39 = ifelse(first_dose_30_39 =="<15", 0, first_dose_30_39)) %>% 
+  mutate(first_dose_40_49 = ifelse(first_dose_40_49 =="<15", 0, first_dose_40_49)) %>% 
+   mutate(first_dose_50_59 = ifelse(first_dose_50_59 =="<15", 0, first_dose_50_59)) %>% 
+ mutate( first_dose_60_69 = ifelse(first_dose_60_69 =="<15", 0,  first_dose_60_69)) %>% 
+  mutate(first_dose_70_79 = ifelse(first_dose_70_79 =="<15", 0, first_dose_70_79)) %>% 
+  mutate(first_dose_80_89 = ifelse(first_dose_80_89 =="<15", 0, first_dose_80_89)) %>% 
+  mutate(first_dose_90 = ifelse(first_dose_90 =="<15", 0, first_dose_90))%>% 
+    mutate(second_dose_0_19 = ifelse(second_dose_0_19 =="<15", 0, first_dose_0_19)) %>% 
+  mutate(second_dose_20_29 = ifelse(second_dose_20_29 =="<15", 0, second_dose_20_29)) %>% 
+  mutate(second_dose_30_39 = ifelse(second_dose_30_39 =="<15", 0, second_dose_30_39)) %>% 
+  mutate(second_dose_40_49 = ifelse(second_dose_40_49 =="<15", 0, second_dose_40_49)) %>% 
+   mutate(second_dose_50_59 = ifelse(second_dose_50_59 =="<15", 0, second_dose_50_59)) %>% 
+ mutate(second_dose_60_69 = ifelse(second_dose_60_69 =="<15", 0,  second_dose_60_69)) %>% 
+  mutate(second_dose_70_79 = ifelse(second_dose_70_79 =="<15", 0, second_dose_70_79)) %>% 
+  mutate(second_dose_80_89 = ifelse(second_dose_80_89 =="<15", 0, second_dose_80_89)) %>% 
+  mutate(second_dose_90 = ifelse(second_dose_90 =="<15", 0, second_dose_90)) %>% 
+   select(city_code, city_name, date, starts_with("first_dose"), starts_with("second_dose")) 
   
-  mutate(first_dose_90 = as.numeric(first_dose_90))
 
+ # select(city_code, city_name, date, starts_with("first_dose")) 
   # mutate(total = sum(first_dose_90))
 
 # still trying to figure out how to do a total of them by each date, seems a little complicated. 
@@ -67,20 +78,88 @@ clean_15 <- covid_vac %>%
 clean_15
 ```
 
+Socio-economic impact on vaccination rate?
+By city code
+population of each city
+
+
+Final Project Milestone #6 due Friday. You must have a working Shiny App. It can be a mess, but it must have at least one attractive graphic with your data. You must have a Model panel with a fitted model and description thereof. You must have an About panel. Submit the url for your Shiny App via Canvas.
+
 
 ```{r}
-clean_num <- clean_15 %>% 
-mutate(first_dose_0_19 = as.numeric(first_dose_0_19)) %>% 
-  mutate(first_dose_20_29 = as.numeric(first_dose_20_29)) %>% 
-  mutate(first_dose_30_39 = as.numeric(first_dose_30_39)) %>% 
-  mutate(first_dose_40_49 = as.numeric(first_dose_40_49)) %>% 
-  mutate(first_dose_50_59 = as.numeric(first_dose_50_59)) %>% 
-  mutate(first_dose_60_69 = as.numeric(first_dose_60_69)) %>% 
-  mutate(first_dose_70_79 = as.numeric(first_dose_70_79)) %>% 
-  mutate(first_dose_80_89 = as.numeric(first_dose_80_89)) %>% 
-  mutate(first_dose_90 = as.numeric(first_dose_90)) 
+as_num <- clean_15 %>% 
+  mutate_at(vars(-c("city_name", "date")), as.numeric) %>% 
+  filter(city_code == c(5000, 3000, 472, 3797))
+  
+# mutate(first_dose_0_19 = as.numeric(first_dose_0_19)) %>% 
+#   mutate(first_dose_20_29 = as.numeric(first_dose_20_29)) %>% 
+#   mutate(first_dose_30_39 = as.numeric(first_dose_30_39)) %>% 
+#   mutate(first_dose_40_49 = as.numeric(first_dose_40_49)) %>% 
+#   mutate(first_dose_50_59 = as.numeric(first_dose_50_59)) %>% 
+#   mutate(first_dose_60_69 = as.numeric(first_dose_60_69)) %>% 
+#   mutate(first_dose_70_79 = as.numeric(first_dose_70_79)) %>% 
+#   mutate(first_dose_80_89 = as.numeric(first_dose_80_89)) %>% 
+#   mutate(first_dose_90 = as.numeric(first_dose_90)) 
+
+```
+
+
+```{r}
+as_num %>% 
+  select(city_code, date, starts_with("first_dose")) %>% 
+  group_by(city_code, date) %>% 
+  mutate(total = sum(first_dose_0_19, first_dose_20_29, first_dose_30_39, first_dose_40_49, first_dose_50_59, first_dose_60_69, first_dose_70_79, first_dose_80_89, first_dose_90)) %>% 
+  select(city_code, date, total) %>% 
+  ggplot(aes(x = date,
+         y = total,
+         color = city_code)) +
+  geom_point()
+
+```
+
+
+
+```{r}
+ clean_num %>% 
+  group_by(city_code, date) %>% 
+  mutate(total = sum(first_dose_0_19, first_dose_20_29, first_dose_30_39, first_dose_40_49, first_dose_50_59, first_dose_60_69, first_dose_70_79, first_dose_80_89, first_dose_90)) %>% 
+  select(city_code, date, total) %>% 
+  filter(city_code == 8500) %>% 
+  ggplot(aes(x = date,
+         y = total)) +
+  geom_point()
+
+```
+
+
+```{r}
+
+fit_obj <- stan_glm(data = as_num, 
+                    formula = first_dose_50_59 ~ 1, 
+                    family = gaussian, 
+                    refresh = 0,
+                    seed = 9)
+```
+
+```{r}
+posterior_plot <- fit_obj %>% 
+  as_tibble() %>% 
+   rename(mu = `(Intercept)`) %>% 
+  ggplot(aes(x = mu)) +
+    geom_histogram(aes(y = after_stat(count/sum(count))), 
+                   bins = 100) +
+    labs(title = "Posterior for Number of vaccinated 50-60 year olds in any city in Israel",
+         subtitle = "Most cities have about 12000 vaccinated",
+         x = "Number of first-dose vaccinated 50 year olds in any given city",
+         y = "Probability",
+         caption = "Data source: Israeli National Health Service") +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+    theme_classic() 
+
+ ggsave("posterior_plot.png", posterior_plot)
   
 ```
+
 
 ```{r}
 test_plot <- clean_num %>% 
@@ -136,6 +215,16 @@ ggsave("total_ages.png", p_total_ages)
  
 ```
 
+```{r}
+total_ages
+```
+
+
+```{r}
+total_ages %>% 
+   ggplot(aes(x = age)) +
+  geom_bar(aes(y = after_stat(count/sum(count))))
+```
 
 
 
@@ -147,21 +236,6 @@ ggsave("total_ages.png", p_total_ages)
 #   filter(!(second_dose_80_89 == "<15")) %>% 
 #   group_by(city_code) %>% 
 #   summarize(total_first_80s = count(first_dose_80_89), .groups = "drop")
-```
-
-```{r}
-pic_tryout <- ggplot(trains, 
-       aes(x = income)) +
-  geom_density() +
-  labs(title = "Income Among Boston Commuter",
-       subtitle = "Why are there so few people with `middle' incomes?",
-       x = "Income",
-       y = NULL,
-       caption = "Data source: Enos (2014)")
-
-
-ggsave("pic.png", pic_tryout)
-
 ```
 
 
